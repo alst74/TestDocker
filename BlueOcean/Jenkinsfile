@@ -1,0 +1,35 @@
+pipeline {
+  agent any
+  stages {
+    stage('Build') {
+      steps {
+        sh '''#!/bin/sh
+echo "Running step one..."
+echo "Let's just backup the original backup file"
+if [ -f /usr/share/httpd/noindex/index.html ]; then
+  sudo mv /usr/share/httpd/noindex/index.html /usr/share/httpd/noindex/index.$(date +%F_$$)
+fi'''
+      }
+    }
+    stage('Test') {
+      steps {
+        echo 'Testing..'
+      }
+    }
+    stage('Deploy') {
+      steps {
+        parallel(
+          "Deploy": {
+            echo 'Deploying....'
+            
+          },
+          "LocalInstall": {
+            fileExists 'index.html'
+            sh 'sudo cp $WORKSPACE/index.html /usr/share/httpd/noindex/index.html'
+            
+          }
+        )
+      }
+    }
+  }
+}
